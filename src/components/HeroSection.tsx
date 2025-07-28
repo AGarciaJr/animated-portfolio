@@ -60,7 +60,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 z-10">
+    <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 z-10">
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center">
           <h1 

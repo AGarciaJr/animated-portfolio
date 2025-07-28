@@ -39,6 +39,11 @@ export default function AboutSection() {
   const statementsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Set initial position of the section to be below viewport
+    gsap.set(sectionRef.current, {
+      yPercent: 100
+    });
+
     const statements = statementsRef.current?.children as HTMLCollectionOf<Element>;
     
     if (statements) {
@@ -68,15 +73,15 @@ export default function AboutSection() {
       });
     }
 
-    // Parallax effect - make the section move up over the hero quickly and smoothly
+    // Parallax effect - make the section slide into view smoothly like Apple.com
     gsap.to(sectionRef.current, {
-      yPercent: -40,
+      yPercent: 0,
       ease: "power2.out",
       scrollTrigger: {
         trigger: sectionRef.current,
         start: "top bottom",
-        end: "center center",
-        scrub: 0.5
+        end: "top center",
+        scrub: 1
       }
     });
 
@@ -86,7 +91,7 @@ export default function AboutSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-20 bg-white/95 backdrop-blur-sm relative overflow-hidden -mt-64 pt-64 shadow-2xl z-20">
+    <section ref={sectionRef} className="h-screen bg-white/95 backdrop-blur-sm relative overflow-hidden shadow-2xl z-20 flex items-center">
       <div className="container mx-auto px-6 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
