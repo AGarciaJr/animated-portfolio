@@ -1,6 +1,7 @@
-"use client";
+// components/AboutSection/AboutSection.tsx
+'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, ReactNode } from 'react'; // Import ReactNode for children prop
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -34,109 +35,124 @@ const aboutStatements = [
   }
 ];
 
-export default function AboutSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const statementsRef = useRef<HTMLDivElement>(null);
+interface AboutSectionProps {
+  children: ReactNode; // This will be your Hero component
+}
+
+export default function AboutSection({ children }: AboutSectionProps) { // Accept children prop
+  const sectionRef = useRef<HTMLElement>(null); // The About section itself
+  const statementsRef = useRef<HTMLDivElement>(null); // For the staggered content
+  const scrollWrapperRef = useRef<HTMLDivElement>(null); // New ref for the scroll container
 
   useEffect(() => {
-    // Set initial position of the section to be below viewport
-    gsap.set(sectionRef.current, {
-      yPercent: 100
-    });
+    const ctx = gsap.context(() => {
 
-    const statements = statementsRef.current?.children as HTMLCollectionOf<Element>;
-    
-    if (statements) {
-      // Set initial state for all statements
-      gsap.set(statements, {
-        x: 200,
-        opacity: 0,
-        rotation: 15,
-        scale: 0.8
-      });
-
-      // Create scroll-triggered animations
-      gsap.to(statements, {
-        x: 0,
-        opacity: 1,
-        rotation: 0,
-        scale: 1,
-        duration: 1,
-        stagger: 0.3,
-        ease: "power3.out",
+      // --- Main Scroll Over Animation ---
+      gsap.to(sectionRef.current, {
+        y: 0,
+        ease: "none",
         scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 80%",
-          end: "bottom 20%",
-          toggleActions: "play none none reverse"
+          trigger: scrollWrapperRef.current,
+          start: "top top",
+          end: "+=100%", // Animates over a 100vh scroll distance
+          scrub: 1,
+          pin: true,
+          pinSpacing: false,
+          // markers: true // Uncomment for debugging scroll positions
         }
       });
-    }
 
-    // Parallax effect - make the section slide into view smoothly like Apple.com
-    gsap.to(sectionRef.current, {
-      yPercent: 0,
-      ease: "power2.out",
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top bottom",
-        end: "top center",
-        scrub: 1
+      // --- Staggered Content Animation (inside About section) ---
+      const statements = statementsRef.current?.children as HTMLCollectionOf<Element>;
+      
+      if (statements) {
+        gsap.set(statements, {
+          opacity: 0,
+          y: 50
+        });
+
+        gsap.to(statements, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.2,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 80%",
+            end: "center center",
+            toggleActions: "play none none reverse",
+            // markers: true // Uncomment for debugging
+          }
+        });
       }
-    });
 
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
+    }, sectionRef);
+
+    return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={sectionRef} className="h-screen bg-white/95 backdrop-blur-sm relative overflow-hidden shadow-2xl z-20 flex items-center">
-      <div className="container mx-auto px-6 relative z-10">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight"
-              style={{ fontFamily: 'var(--font-newsreader), serif' }}>
-            About
-            <span className="block text-blue-600">Me</span>
-          </h2>
-        </div>
+    // This wrapper acts as the total scrollable area for the transition
+    // Its height will determine how much scroll is needed for the About section to cover the Hero
+    <div ref={scrollWrapperRef} className="relative h-[200vh] overflow-hidden">
+      {/*
+        This is where your Hero component will be rendered.
+        It's passed as 'children' to this AboutSection wrapper.
+        Ensure your Hero component fills 100vh and has a lower z-index.
+      */}
+      <div className="absolute top-0 left-0 w-full h-screen z-10">
+        {children} {/* This will render your Hero component */}
+      </div>
 
-        {/* About Statements */}
-        <div ref={statementsRef} className="max-w-4xl mx-auto space-y-8">
-          {aboutStatements.map((statement) => (
-            <div
-              key={statement.id}
-              className="flex items-start space-x-6 p-6 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex-shrink-0 w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
-                {statement.icon}
-              </div>
-              <div className="flex-1">
-                <p className="text-xl text-gray-800 leading-relaxed"
-                   style={{ fontFamily: 'var(--font-newsreader), serif' }}>
-                  {statement.text}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-16 text-center">
-          <div className="inline-block bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 shadow-lg">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4"
+      {/* The About Section slides up over the Hero */}
+      <section ref={sectionRef} className="absolute bottom-0 left-0 w-full h-screen bg-white z-20 flex items-center">
+        <div className="container mx-auto px-6 py-12">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight"
                 style={{ fontFamily: 'var(--font-newsreader), serif' }}>
-              Currently Studying
-            </h3>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto"
-               style={{ fontFamily: 'var(--font-newsreader), serif' }}>
-              Computer Science at Baylor University, focusing on software engineering, 
-              data structures, algorithms, and modern web development technologies.
-            </p>
+              About
+              <span className="block text-blue-600">Me</span>
+            </h2>
+          </div>
+
+          {/* About Statements */}
+          <div ref={statementsRef} className="max-w-4xl mx-auto space-y-8">
+            {aboutStatements.map((statement) => (
+              <div
+                key={statement.id}
+                className="flex items-start space-x-6 p-6 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="flex-shrink-0 w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
+                  {statement.icon}
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl text-gray-800 leading-relaxed"
+                     style={{ fontFamily: 'var(--font-newsreader), serif' }}>
+                    {statement.text}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Additional Info */}
+          <div className="mt-16 text-center">
+            <div className="inline-block bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4"
+                  style={{ fontFamily: 'var(--font-newsreader), serif' }}>
+                Currently Studying
+              </h3>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto"
+                 style={{ fontFamily: 'var(--font-newsreader), serif' }}>
+                Computer Science at Baylor University, focusing on software engineering, 
+                data structures, algorithms, and modern web development technologies.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
-} 
+}
